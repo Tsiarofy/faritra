@@ -25,8 +25,14 @@ const creerGrille = (): Grille =>
 const cle = (l: number, c: number) => `${l},${c}`;
 
 const adjacentes = (l: number, c: number): Position[] =>
-  ([[l - 1, c], [l + 1, c], [l, c - 1], [l, c + 1]] as Position[])
-    .filter(([a, b]) => a >= 0 && a < TAILLE && b >= 0 && b < TAILLE);
+  (
+    [
+      [l - 1, c],
+      [l + 1, c],
+      [l, c - 1],
+      [l, c + 1],
+    ] as Position[]
+  ).filter(([a, b]) => a >= 0 && a < TAILLE && b >= 0 && b < TAILLE);
 
 // ── Logique de détection des zones ────────────────────────────────
 type ZoneFermee = {
@@ -50,8 +56,14 @@ function contourZoneEstOrthogonal(
   const checked = new Set<string>();
   for (const bk of bordure) {
     const [bl, bc] = bk.split(",").map(Number);
-    for (const [dl, dc] of [[-1, -1], [-1, 0], [0, -1], [0, 0]] as [number, number][]) {
-      const r = bl + dl, c = bc + dc;
+    for (const [dl, dc] of [
+      [-1, -1],
+      [-1, 0],
+      [0, -1],
+      [0, 0],
+    ] as [number, number][]) {
+      const r = bl + dl,
+        c = bc + dc;
       if (r < 0 || r + 1 >= TAILLE || c < 0 || c + 1 >= TAILLE) continue;
       const ck = `${r},${c}`;
       if (checked.has(ck)) continue;
@@ -96,7 +108,7 @@ function detecterZonesFermees(grille: Grille): ZoneFermee[] {
             file.push([nl, nc]);
           }
         }
-        inter.forEach(k => visitees.add(k));
+        inter.forEach((k) => visitees.add(k));
         if (toucheBord) continue;
         if (!contourZoneEstOrthogonal(inter, grille, proprio)) continue;
 
@@ -123,7 +135,7 @@ function jouer(
 ): [Grille, number, string] | null {
   if (grille[l][c] !== VIDE) return null;
 
-  const g: Grille = grille.map(row => [...row]);
+  const g: Grille = grille.map((row) => [...row]);
   g[l][c] = joueur;
 
   const zones = detecterZonesFermees(g);
@@ -163,49 +175,61 @@ export default function App() {
 
   const reset = useCallback(() => {
     const g = creerGrille();
-    gRef.current = g; hashRef.current = "";
-    passRef.current = 0; finiRef.current = false;
-    sNRef.current = 0; sBRef.current = 0;
-    setGrille(g); setTour(NOIR);
-    setScoreN(0); setScoreB(0);
-    setMsg(""); setFini(false); setVainqueur(""); setZones([]);
+    gRef.current = g;
+    hashRef.current = "";
+    passRef.current = 0;
+    finiRef.current = false;
+    sNRef.current = 0;
+    sBRef.current = 0;
+    setGrille(g);
+    setTour(NOIR);
+    setScoreN(0);
+    setScoreB(0);
+    setMsg("");
+    setFini(false);
+    setVainqueur("");
+    setZones([]);
   }, []);
 
   const terminer = useCallback(() => {
     finiRef.current = true;
     setFini(true);
-    const sN = sNRef.current, sB = sBRef.current;
+    const sN = sNRef.current,
+      sB = sBRef.current;
     setVainqueur(sN > sB ? "noir" : sB > sN ? "blanc" : "egal");
     setMsg(`${sN} — ${sB}`);
   }, []);
 
-  const appliquerCoup = useCallback((l: number, c: number) => {
-    if (finiRef.current) return;
-    const res = jouer(gRef.current, l, c, tour, hashRef.current);
-    
-    if (!res) {
-      setMsg("—");
-      return;
-    }
+  const appliquerCoup = useCallback(
+    (l: number, c: number) => {
+      if (finiRef.current) return;
+      const res = jouer(gRef.current, l, c, tour, hashRef.current);
 
-    const [ng, captures, hash] = res;
-    hashRef.current = hash;
-    passRef.current = 0;
-    gRef.current = ng;
+      if (!res) {
+        setMsg("—");
+        return;
+      }
 
-    if (tour === NOIR) {
-      sNRef.current += captures;
-      setScoreN(sNRef.current);
-    } else {
-      sBRef.current += captures;
-      setScoreB(sBRef.current);
-    }
+      const [ng, captures, hash] = res;
+      hashRef.current = hash;
+      passRef.current = 0;
+      gRef.current = ng;
 
-    setZones(detecterZonesFermees(ng));
-    setMsg(captures > 0 ? `+${captures}` : "");
-    setGrille(ng);
-    setTour(tour === NOIR ? BLANC : NOIR);
-  }, [tour]);
+      if (tour === NOIR) {
+        sNRef.current += captures;
+        setScoreN(sNRef.current);
+      } else {
+        sBRef.current += captures;
+        setScoreB(sBRef.current);
+      }
+
+      setZones(detecterZonesFermees(ng));
+      setMsg(captures > 0 ? `+${captures}` : "");
+      setGrille(ng);
+      setTour(tour === NOIR ? BLANC : NOIR);
+    },
+    [tour],
+  );
 
   const passer = useCallback(() => {
     if (finiRef.current) return;
@@ -242,10 +266,18 @@ export default function App() {
           </View>
 
           <View style={s.centerBlock}>
-            <Text style={s.msgTxt}>{msg || (fini ? "" : tour === NOIR ? "●" : "○")}</Text>
+            <Text style={s.msgTxt}>
+              {msg || (fini ? "" : tour === NOIR ? "●" : "○")}
+            </Text>
           </View>
 
-          <View style={[s.scoreBlock, s.scoreBlockR, tour === BLANC && !fini && s.scoreActiveR]}>
+          <View
+            style={[
+              s.scoreBlock,
+              s.scoreBlockR,
+              tour === BLANC && !fini && s.scoreActiveR,
+            ]}
+          >
             <Text style={[s.scoreNum, s.scoreNumR]}>{scoreB}</Text>
             <View style={[s.dot, s.dotB]} />
           </View>
@@ -253,43 +285,81 @@ export default function App() {
 
         {/* Plateau */}
         <View style={s.boardWrap}>
-          <View style={[s.board, { width: TAILLE * CELLULE, height: TAILLE * CELLULE }]}>
+          <View
+            style={[
+              s.board,
+              { width: TAILLE * CELLULE, height: TAILLE * CELLULE },
+            ]}
+          >
             {Array.from({ length: TAILLE }).map((_, i) => (
               <React.Fragment key={`g${i}`}>
-                <View style={[s.lineH, { top: (i + 0.5) * CELLULE, left: CELLULE / 2, right: CELLULE / 2 }]} />
-                <View style={[s.lineV, { left: (i + 0.5) * CELLULE, top: CELLULE / 2, bottom: CELLULE / 2 }]} />
+                <View
+                  style={[
+                    s.lineH,
+                    {
+                      top: (i + 0.5) * CELLULE,
+                      left: CELLULE / 2,
+                      right: CELLULE / 2,
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    s.lineV,
+                    {
+                      left: (i + 0.5) * CELLULE,
+                      top: CELLULE / 2,
+                      bottom: CELLULE / 2,
+                    },
+                  ]}
+                />
               </React.Fragment>
             ))}
 
-            {grille.map((row, l) => row.map((val, c) => {
-              const k = cle(l, c);
-              const prop = surb.get(k);
-              return (
-                <TouchableOpacity
-                  key={k}
-                  activeOpacity={0.8}
-                  style={[
-                    s.cell,
-                    { top: l * CELLULE, left: c * CELLULE, width: CELLULE, height: CELLULE },
-                    prop !== undefined && val === VIDE && {
-                      backgroundColor: prop === NOIR
-                        ? "rgba(0,0,0,0.07)"
-                        : "rgba(0,0,0,0.04)",
-                    },
-                  ]}
-                  onPress={() => appliquerCoup(l, c)}
-                  disabled={val !== VIDE || fini}
-                >
-                  {val !== VIDE && (
-                    <View style={[
-                      s.stone,
-                      { width: CELLULE * 0.76, height: CELLULE * 0.76, borderRadius: CELLULE * 0.38 },
-                      val === NOIR ? s.stoneN : s.stoneB,
-                    ]} />
-                  )}
-                </TouchableOpacity>
-              );
-            }))}
+            {grille.map((row, l) =>
+              row.map((val, c) => {
+                const k = cle(l, c);
+                const prop = surb.get(k);
+                return (
+                  <TouchableOpacity
+                    key={k}
+                    activeOpacity={0.8}
+                    style={[
+                      s.cell,
+                      {
+                        top: l * CELLULE,
+                        left: c * CELLULE,
+                        width: CELLULE,
+                        height: CELLULE,
+                      },
+                      prop !== undefined &&
+                        val === VIDE && {
+                          backgroundColor:
+                            prop === NOIR
+                              ? "rgba(0,0,0,0.07)"
+                              : "rgba(0,0,0,0.04)",
+                        },
+                    ]}
+                    onPress={() => appliquerCoup(l, c)}
+                    disabled={val !== VIDE || fini}
+                  >
+                    {val !== VIDE && (
+                      <View
+                        style={[
+                          s.stone,
+                          {
+                            width: CELLULE * 0.76,
+                            height: CELLULE * 0.76,
+                            borderRadius: CELLULE * 0.38,
+                          },
+                          val === NOIR ? s.stoneN : s.stoneB,
+                        ]}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              }),
+            )}
           </View>
         </View>
 
@@ -311,10 +381,20 @@ export default function App() {
           <View style={s.overlay}>
             <View style={s.winBox}>
               <Text style={s.winTitle}>
-                {vainqueur === "egal" ? "égalité" : vainqueur === "noir" ? "noir gagne" : "blanc gagne"}
+                {vainqueur === "egal"
+                  ? "égalité"
+                  : vainqueur === "noir"
+                    ? "noir gagne"
+                    : "blanc gagne"}
               </Text>
-              <Text style={s.winScore}>{scoreN} — {scoreB}</Text>
-              <TouchableOpacity onPress={reset} activeOpacity={0.6} style={s.winBtn}>
+              <Text style={s.winScore}>
+                {scoreN} — {scoreB}
+              </Text>
+              <TouchableOpacity
+                onPress={reset}
+                activeOpacity={0.6}
+                style={s.winBtn}
+              >
                 <Text style={s.winBtnTxt}>rejouer</Text>
               </TouchableOpacity>
             </View>
@@ -330,38 +410,134 @@ const SCREEN = Dimensions.get("window").width;
 const CELLULE = Math.floor((SCREEN - 32) / TAILLE);
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F7F5F0", paddingTop: 56, alignItems: "center" },
-  header: { width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, marginBottom: 28 },
+  root: {
+    flex: 1,
+    backgroundColor: "#F7F5F0",
+    paddingTop: 56,
+    alignItems: "center",
+  },
+  header: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    marginBottom: 28,
+  },
   logo: { fontSize: 22, fontWeight: "300", color: "#111", letterSpacing: 6 },
   resetBtn: { fontSize: 22, color: "#999", fontWeight: "300" },
-  scoreRow: { flexDirection: "row", alignItems: "center", width: "100%", paddingHorizontal: 24, marginBottom: 20 },
-  scoreBlock: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  scoreBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
   scoreBlockR: { justifyContent: "flex-end" },
   scoreActive: { backgroundColor: "rgba(0,0,0,0.06)" },
   scoreActiveR: { backgroundColor: "rgba(0,0,0,0.06)" },
   dot: { width: 10, height: 10, borderRadius: 5 },
   dotN: { backgroundColor: "#111" },
   dotB: { backgroundColor: "#FFF", borderWidth: 1.5, borderColor: "#999" },
-  scoreNum: { fontSize: 28, fontWeight: "200", color: "#111", letterSpacing: 1 },
+  scoreNum: {
+    fontSize: 28,
+    fontWeight: "200",
+    color: "#111",
+    letterSpacing: 1,
+  },
   scoreNumR: { textAlign: "right" },
   centerBlock: { alignItems: "center", minWidth: 40 },
   msgTxt: { fontSize: 14, color: "#999", fontWeight: "300", letterSpacing: 1 },
   boardWrap: { borderRadius: 4, overflow: "hidden", marginBottom: 24 },
   board: { backgroundColor: "#EDE8DC", position: "relative" },
-  lineH: { position: "absolute", height: StyleSheet.hairlineWidth, backgroundColor: "#B8AE98" },
-  lineV: { position: "absolute", width: StyleSheet.hairlineWidth, backgroundColor: "#B8AE98" },
-  cell: { position: "absolute", alignItems: "center", justifyContent: "center" },
+  lineH: {
+    position: "absolute",
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#B8AE98",
+  },
+  lineV: {
+    position: "absolute",
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: "#B8AE98",
+  },
+  cell: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   stone: { borderWidth: 0 },
   stoneN: { backgroundColor: "#111", elevation: 4 },
-  stoneB: { backgroundColor: "#F5F2EC", borderWidth: 1, borderColor: "#C8C0B0", elevation: 2 },
-  controls: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", paddingHorizontal: 24 },
-  passBtn: { paddingVertical: 10, paddingHorizontal: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: "#CCC", borderRadius: 20 },
+  stoneB: {
+    backgroundColor: "#F5F2EC",
+    borderWidth: 1,
+    borderColor: "#C8C0B0",
+    elevation: 2,
+  },
+  controls: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 24,
+  },
+  passBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#CCC",
+    borderRadius: 20,
+  },
   passTxt: { fontSize: 13, color: "#666", fontWeight: "400", letterSpacing: 1 },
-  modeLabelOn: { fontSize: 10, color: "#333", fontWeight: "600", letterSpacing: 1 },
-  overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(247,245,240,0.92)", alignItems: "center", justifyContent: "center" },
+  modeLabelOn: {
+    fontSize: 10,
+    color: "#333",
+    fontWeight: "600",
+    letterSpacing: 1,
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(247,245,240,0.92)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   winBox: { alignItems: "center", gap: 12 },
-  winTitle: { fontSize: 28, fontWeight: "200", color: "#111", letterSpacing: 4 },
-  winScore: { fontSize: 42, fontWeight: "100", color: "#555", letterSpacing: 4 },
-  winBtn: { marginTop: 16, paddingVertical: 10, paddingHorizontal: 28, borderWidth: StyleSheet.hairlineWidth, borderColor: "#999", borderRadius: 20 },
-  winBtnTxt: { fontSize: 13, color: "#555", letterSpacing: 2, fontWeight: "400" },
+  winTitle: {
+    fontSize: 28,
+    fontWeight: "200",
+    color: "#111",
+    letterSpacing: 4,
+  },
+  winScore: {
+    fontSize: 42,
+    fontWeight: "100",
+    color: "#555",
+    letterSpacing: 4,
+  },
+  winBtn: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#999",
+    borderRadius: 20,
+  },
+  winBtnTxt: {
+    fontSize: 13,
+    color: "#555",
+    letterSpacing: 2,
+    fontWeight: "400",
+  },
 });
