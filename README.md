@@ -1,6 +1,6 @@
 ## Faritra
 
-Faritra est un jeu inspiré de Go, avec les mêmes règles que celui-ci, avec un style personnalisé
+Faritra est un jeu inspiré de Go, avec les mêmes règles que celui-ci, et un style personnalisé
 
 ## Développement
 
